@@ -1,0 +1,33 @@
+name: Сборка для Windows
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Сборка
+        run: cargo build --release
+      - name: Упаковка
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          Copy-Item target/release/glubina3d.exe "out/Глубина 3D.exe"
+          Copy-Item README.md out/
+          Compress-Archive -Path out/* -DestinationPath Glubina3D-Windows.zip -Force
+      - name: Релиз
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Глубина 3D для Windows
+          body: Скачай Glubina3D-Windows.zip, распакуй и запусти «Глубина 3D.exe».
+          files: Glubina3D-Windows.zip
+          make_latest: true
